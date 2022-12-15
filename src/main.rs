@@ -21,7 +21,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(AppState { db: db.clone() }))
-            .service(web::scope("/task").configure(task::api::config))
+            .service(web::scope("/tasks").configure(task::api::config))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
