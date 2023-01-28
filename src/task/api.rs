@@ -1,5 +1,5 @@
 use crate::task::{repository, InsertableTask, Task, TaskError};
-use actix_web::{delete, get, post, put, web, Responder, Result};
+use actix_web::{delete, get, post, patch, web, Responder, Result};
 use mongodb::bson::{doc, Document as BsonDocument};
 use serde::{Deserialize, Serialize};
 
@@ -64,7 +64,7 @@ fn are_keys_valid(updates: &serde_json::Map<String, serde_json::Value>) -> bool 
     true
 }
 
-#[put("/{id}")]
+#[patch("/{id}")]
 async fn update_task(
     path: web::Path<String>,
     state: web::Data<crate::AppState>,
