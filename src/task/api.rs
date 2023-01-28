@@ -1,6 +1,6 @@
 use crate::task::{repository, InsertableTask, Task, TaskError};
-use actix_web::{get, post, delete, web, Responder, Result};
-use mongodb::bson::doc;
+use actix_web::{delete, get, post, put, web, Responder, Result};
+use mongodb::bson::{doc, Document as BsonDocument};
 use serde::{Deserialize, Serialize};
 
 #[get("/")]
@@ -42,12 +42,48 @@ async fn create_task(
 }
 
 #[delete("/{id}")]
-async fn delete_task(path: web::Path<String>, state: web::Data<crate::AppState>) -> Result<impl Responder, TaskError> {
+async fn delete_task(
+    path: web::Path<String>,
+    state: web::Data<crate::AppState>,
+) -> Result<impl Responder, TaskError> {
     let id = path.into_inner();
     let db = state.db.lock().unwrap().clone();
     match repository::delete(&db, id).await {
         Ok(_) => Ok(web::Json(1)),
-        Err(e) => Err(e)
+        Err(e) => Err(e),
+    }
+}
+
+fn are_keys_valid(updates: &serde_json::Map<String, serde_json::Value>) -> bool {
+    let valid_keys = ["name".to_string()];
+    for (key, _) in updates {
+        if !valid_keys.contains(&key) {
+            return false;
+        }
+    }
+    true
+}
+
+#[put("/{id}")]
+async fn update_task(
+    path: web::Path<String>,
+    state: web::Data<crate::AppState>,
+    body: String,
+) -> Result<impl Responder, TaskError> {
+    let id = path.into_inner();
+    let db = state.db.lock().unwrap().clone();
+
+    let updates: serde_json::Value = serde_json::from_str(&body).unwrap();
+    if !are_keys_valid(&updates.as_object().unwrap()) {
+        return Err(TaskError {
+            message: "keys not valid".to_string(),
+        });
+    }
+
+    let updates: BsonDocument = serde_json::from_value(updates).unwrap();
+    match repository::update(&db, id, updates).await {
+        Ok(_) => Ok(web::Json(1)),
+        Err(e) => Err(e),
     }
 }
 
@@ -55,5 +91,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(get_all_tasks)
         .service(create_task)
         .service(get_task)
-        .service(delete_task);
+        .service(delete_task)
+        .service(update_task);
 }

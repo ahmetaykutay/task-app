@@ -34,10 +34,14 @@ pub async fn find_by_id(db: &Database, id: String) -> Result<Option<Task>, TaskE
     Ok(task)
 }
 
-// TODO implement update
-// pub async fn update(db: &Database, id: String) -> Result<(), TaskError> {
-
-// }
+pub async fn update(db: &Database, id: String, updates: mongodb::bson::Document) -> Result<(), TaskError> {
+    let id = oid::ObjectId::parse_str(id).unwrap();
+    let query = doc! { "_id": id };
+    let update = doc! { "$set": updates };
+    let tasks = db.collection::<Task>(COLLECTION);
+    tasks.update_one(query, update, None).await?;
+    Ok(())
+}
 
 pub async fn delete(db: &Database, id: String) -> Result<(), TaskError> {
     let tasks = db.collection::<Task>(COLLECTION);

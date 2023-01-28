@@ -1,4 +1,4 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpServer};
 use mongodb::{options::ClientOptions, Client, Database};
 use std::sync::{Arc, Mutex};
 mod task;
