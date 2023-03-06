@@ -3,16 +3,19 @@ use mongodb::{options::ClientOptions, Client, Database};
 use std::sync::{Arc, Mutex};
 mod task;
 
+#[macro_use]
+extern crate dotenv_codegen;
+
 pub struct AppState {
     pub db: Arc<Mutex<Database>>,
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db_uri = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.5.4";
+    let db_uri = dotenv!("DB_URI");
     let mut client_options = ClientOptions::parse(&db_uri)
         .await
-        .expect("clinet options could not be parsed");
+        .expect("clint options could not be parsed");
     client_options.app_name = Some("Task App".to_string());
     let client = Client::with_options(client_options).expect("db connection failed");
     let db = client.database("task_app");

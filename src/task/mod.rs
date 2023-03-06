@@ -1,5 +1,5 @@
 pub mod api;
-pub mod repository;
+mod repository;
 
 use serde::{Deserialize, Serialize, ser::SerializeStruct};
 use mongodb::bson;
