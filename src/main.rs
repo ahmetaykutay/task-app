@@ -1,6 +1,8 @@
+use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 use mongodb::{options::ClientOptions, Client, Database};
 use std::sync::{Arc, Mutex};
+
 mod task;
 
 #[macro_use]
@@ -22,11 +24,13 @@ async fn main() -> std::io::Result<()> {
     let db = Arc::new(Mutex::new(db));
 
     HttpServer::new(move || {
+        let cors = Cors::permissive();
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(AppState { db: db.clone() }))
             .service(web::scope("/tasks").configure(task::api::config))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("0.0.0.0", 80))?
     .run()
     .await
 }

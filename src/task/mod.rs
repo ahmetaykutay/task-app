@@ -3,22 +3,23 @@ mod repository;
 
 use serde::{Deserialize, Serialize, ser::SerializeStruct};
 use mongodb::bson;
-use derive_more::{Display, Error};
 use actix_web::error;
+use thiserror::Error;
 
 
-// TODO use enum to specify error types
-#[derive(Debug, Display, Error)]
-#[display(fmt = "error: {}", message)]
-pub struct TaskError {
-    message: String,
+#[derive(Debug, Error)]
+pub enum  TaskError {
+    #[error("Database error: {0}")]
+    Database(String),
+    #[error("Provided keys are not valid")]
+    InvalidKeys,
 }
 
 // Use default implementation for `error_response()` method
 impl error::ResponseError for TaskError {}
 impl From<mongodb::error::Error> for TaskError {
     fn from(e: mongodb::error::Error) -> Self {
-        TaskError {message: format!("{}", e.kind.to_string())}
+        TaskError::Database(e.kind.to_string())
     }
 }
 
@@ -43,6 +44,6 @@ impl Serialize for Task {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InsertableTask {
-    pub name: Option<String>,
+    pub name: String,
 }
 

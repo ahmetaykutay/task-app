@@ -20,9 +20,7 @@ async fn get_task(
     let res = repository::find_by_id(&db, id).await?;
     match res {
         Some(v) => Ok(web::Json(v)),
-        None => Err(TaskError {
-            message: "task not found".to_string(),
-        }),
+        None => Err(TaskError::Database("Task not found".to_string())),
     }
 }
 
@@ -75,9 +73,7 @@ async fn update_task(
 
     let updates: serde_json::Value = serde_json::from_str(&body).unwrap();
     if !are_keys_valid(&updates.as_object().unwrap()) {
-        return Err(TaskError {
-            message: "keys not valid".to_string(),
-        });
+        return Err(TaskError::InvalidKeys);
     }
 
     let updates: BsonDocument = serde_json::from_value(updates).unwrap();
